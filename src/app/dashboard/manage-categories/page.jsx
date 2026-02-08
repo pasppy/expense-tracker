@@ -3,3 +3,7 @@ export default function Manage_Categories() {
         <div>Manage categories</div>
     )
 }
+
+const metadata = {
+    title: "Manage Categories"
+}
