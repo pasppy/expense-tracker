@@ -2,7 +2,7 @@
 import { supabaseBroswerClient } from "@/lib/supabase/browser-client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react"
-
+import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import {
@@ -26,6 +26,7 @@ export default function LoginSignUp() {
     const [pass, setPass] = useState('');
     const [status, setStatus] = useState({})
     const supabase = supabaseBroswerClient();
+    const [showPass, setShowPass] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -45,6 +46,7 @@ export default function LoginSignUp() {
         setEmail('');
         setPass('');
         setStatus('');
+        setShowPass(false);
     }
     const setSignUp = () => {
         setMode("signup");
@@ -52,7 +54,7 @@ export default function LoginSignUp() {
         setEmail('');
         setPass('');
         setStatus('');
-
+        setShowPass(false);
     }
 
     const submitHandler = async (e) => {
@@ -134,8 +136,26 @@ export default function LoginSignUp() {
                                     <div className="grid gap-2">
                                         <div className="flex items-center">
                                             <Label htmlFor="password">Password</Label>
+                                            <a
+                                                href="/reset-pass"
+                                                className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                                            >
+                                                Forgot your password?
+                                            </a>
                                         </div>
-                                        <Input id="password" type="password" value={pass} onChange={(e) => setPass(e.target.value)} required />
+                                        <div className="relative">
+
+                                            <Input id="password" type={showPass ? "text" : "password"} value={pass} onChange={(e) => setPass(e.target.value)} required />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                                onClick={() => setShowPass(!showPass)}
+                                            >
+                                                {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -186,12 +206,21 @@ export default function LoginSignUp() {
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <div className="flex items-center">
-                                            <Label htmlFor="password">Password</Label>
+                                        <Label htmlFor="password">Password</Label>
+                                        <div className="relative">
+                                            <Input id="password" type={showPass ? "text" : "password"}
+                                                value={pass}
+                                                onChange={(e) => setPass(e.target.value)} required />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                                onClick={() => setShowPass(!showPass)}
+                                            >
+                                                {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            </Button>
                                         </div>
-                                        <Input id="password" type="password"
-                                            value={pass}
-                                            onChange={(e) => setPass(e.target.value)} required />
                                     </div>
                                 </div>
                             </CardContent>

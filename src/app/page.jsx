@@ -9,7 +9,7 @@ export default function Home() {
     router.push('/login-signup');
   }
   return <div>
-    <div>Product Landing Page </div>
+    <div>Product Landing Page</div>
     <Button onClick={onLogin}>Login</Button>
   </div>
 }
