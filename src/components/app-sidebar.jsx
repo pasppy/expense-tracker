@@ -132,9 +132,9 @@ export function AppSidebar() {
                             <SidebarMenuItem>
                                 <SidebarMenuButton
                                     asChild
-                                    isActive={pathname === "/dashboard/add-expense"}
+                                    isActive={pathname === "/dashboard/manage-expenses"}
                                 >
-                                    <Link href="/dashboard/add-expense">
+                                    <Link href="/dashboard/manage-expenses">
                                         <Wallet />
                                         <span>Manage Expenses</span>
                                     </Link>
@@ -144,9 +144,9 @@ export function AppSidebar() {
                             <SidebarMenuItem>
                                 <SidebarMenuButton
                                     asChild
-                                    isActive={pathname === "/dashboard/categories"}
+                                    isActive={pathname === "/dashboard/manage-categories"}
                                 >
-                                    <Link href="/dashboard/categories">
+                                    <Link href="/dashboard/manage-categories">
                                         <Tags />
                                         <span>Manage Categories</span>
                                     </Link>

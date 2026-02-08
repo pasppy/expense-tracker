@@ -31,7 +31,7 @@ import { CalendarIcon } from "lucide-react"
 import { toast } from "sonner"
 import ExpenseTable from "./ExpenseTable"
 
-export default function Add_Expense() {
+export default function Manage_Expenses() {
     const [date, setDate] = useState(new Date());
     const [amount, setAmount] = useState("");
     const [note, setNote] = useState("");
