@@ -78,7 +78,7 @@ export async function GET(req) {
         const endDate = searchParams.get('end');
 
         // database select query 
-        const { data, error } = await supabase.from("expenses").select("*, categories(name)").gte("expense_date", startDate).lte("expense_date", endDate).order('expense_date', { ascending: false });
+        const { data, error } = await supabase.from("expenses").select("*, categories(name)").gte("expense_date", startDate).lte("expense_date", endDate).order('expense_date', { ascending: false }).order("created_at", { ascending: false });
 
         if (error) {
             return NextResponse.json({
