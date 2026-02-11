@@ -30,6 +30,7 @@ import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { toast } from "sonner"
 import ExpenseTable from "./ExpenseTable"
+import { no } from "zod/v4/locales"
 
 export default function Manage_Expenses() {
     const [date, setDate] = useState(new Date());
@@ -49,6 +50,11 @@ export default function Manage_Expenses() {
     const [toDate, setToDate] = useState(format(new Date(), "yyyy-MM-dd"));
     const [rangeSelector, setRangeSelector] = useState("");
 
+    const [updateExpense, setUpdateExpense] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [isUpdateFieldsChanged, setIsUpdateFieldsChanged] = useState(false);
+
     const getCategories = async () => {
         const res = await fetch('/api/category');
         const { data, error } = await res.json();
@@ -66,6 +72,28 @@ export default function Manage_Expenses() {
         }
         setExpenses(data ?? [])
     }
+    useEffect(() => {
+        if (updateExpense) {
+            setAmount(updateExpense?.amount)
+            setNote(updateExpense?.note)
+            setDate(updateExpense?.expense_date)
+            setCategoryId(updateExpense?.category_id)
+        }
+        else {
+            setAmount("")
+            setNote("")
+            setDate(new Date())
+            setCategoryId("")
+        }
+    }, [updateExpense])
+
+    useEffect(() => {
+        if (amount != updateExpense?.amount || note != updateExpense?.note || date != updateExpense?.expense_date || categoryId != updateExpense?.category_id )
+            setIsUpdateFieldsChanged(true);
+        else
+            setIsUpdateFieldsChanged(false);
+
+    }, [amount, note, date, categoryId])
 
     useEffect(() => {
         getCategories();
@@ -183,9 +211,60 @@ export default function Manage_Expenses() {
         setAddingExpense(false);
     }
 
+    const updateExpenseHandler = async () => {
+        setIsUpdating(true);
+
+        setAmount(Number(amount));
+
+        if (!categoryId || !amount || !date) {
+            if (!categoryId)
+                toast.warning('Please choose a category', { position: "top-right" })
+            if (amount <= 0)
+                toast.warning('Please enter correct amount', { position: "top-right" })
+            if (!date)
+                toast.warning('Please select a date', { position: "top-right" })
+
+            setIsUpdating(false);
+            setIsEditModalOpen(false);
+            setUpdateExpense(null);
+            return
+        }
+        const payload = {
+            category_id: categoryId, amount: Number(amount), expense_date: format(date, "yyyy-MM-dd"), note
+        }
+
+        
+        const res = await fetch(`/api/expense/${updateExpense?.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const { message, error } = await res.json();
+        if (error)
+            toast.error(error, { position: "top-right" });
+
+        else {
+            getExpenses();
+            toast.success(message, { position: "top-right" });
+        }
+
+        // after finished executing
+        setIsUpdating(false);
+        setIsEditModalOpen(false);
+        setUpdateExpense(null);
+
+    }
+
     return (<div className="pt-8">
         <Card className={"w-full mx-auto max-w-250"}>
-            <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+            {/* add category modal */}
+            <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
+                setIsEditModalOpen(open);
+                if (!open) resetStuff();
+            }}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Add Category</DialogTitle>
@@ -217,6 +296,125 @@ export default function Manage_Expenses() {
                             disabled={!newCategory.trim() || addingCategory}
                         >
                             {addingCategory ? "Adding... " : "Add"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* edit modal */}
+            <Dialog open={isEditModalOpen} onOpenChange={(open) => {
+                setIsEditModalOpen(open);
+                if (!open)
+                    setUpdateExpense(null);
+            }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Expense</DialogTitle>
+                    </DialogHeader>
+
+                    {/* add fields */}
+                    <div className="flex flex-wrap gap-6">
+
+                        {/* category */}
+                        <div className="grid gap-3">
+                            <div className="flex items-center">
+                                <Label htmlFor="category">Category</Label>
+                            </div>
+
+                            <NativeSelect
+                                id="category"
+                                value={categoryId}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setCategoryId(value);
+                                }}
+                            >
+
+                                {categories.map((cat) => (
+                                    <NativeSelectOption
+                                        key={cat.id}
+                                        value={cat.id}
+                                    >
+                                        {cat.name}
+                                    </NativeSelectOption>
+                                ))}
+                            </NativeSelect>
+                        </div>
+
+                        {/* amount */}
+                        <div className="grid gap-3">
+                            <div className="flex items-center">
+                                <Label htmlFor="amount">Amount</Label>
+                            </div>
+                            <Input id="amount"
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="Add amount"
+                                required />
+                        </div>
+
+                        {/* date */}
+                        <div>
+                            <Field className=" grid gap-2">
+                                <FieldLabel htmlFor="date-picker-simple">Date</FieldLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            id="date-picker-simple"
+                                            className=" font-normal"
+                                        >
+
+                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
+
+                                            <CalendarIcon className="h-4 w-4 opacity-50" />
+
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={date}
+                                            onSelect={setDate}
+                                            defaultMonth={date}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </Field>
+                        </div>
+
+                        {/* note */}
+                        <div className="grid gap-2">
+                            <div className="flex items-center">
+                                <Label htmlFor="note">Note<span className="text-sm text-muted-foreground italic font-medium">(Optional)</span></Label>
+                            </div>
+                            <Input id="note"
+                                type="text"
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                placeholder="Add note"
+                            />
+                        </div>
+
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setIsEditModalOpen(false);
+                                setUpdateExpense(null);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            onClick={updateExpenseHandler}
+                            disabled={isUpdating || !isUpdateFieldsChanged}
+                        >
+                            {isUpdating ? "Updating..." : "Update"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -373,7 +571,10 @@ export default function Manage_Expenses() {
                 </CardAction>
             </CardHeader>
             <CardContent>
-                <ExpenseTable expenses={expenses} onDeleteSuccess={getExpenses} />
+                <ExpenseTable expenses={expenses} onDeleteSuccess={getExpenses} onEdit={(expenses) => {
+                    setUpdateExpense(expenses);
+                    setIsEditModalOpen(true);
+                }} />
             </CardContent>
             <CardFooter className="">
 

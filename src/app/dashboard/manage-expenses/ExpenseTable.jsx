@@ -7,7 +7,6 @@ import {
     TableRow,
     TableHead,
     TableCell,
-    TableFooter,
 } from "@/components/ui/table";
 
 import { Button } from "@/components/ui/button"
@@ -22,7 +21,7 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
-const ExpenseTable = ({ expenses, onDeleteSuccess }) => {
+const ExpenseTable = ({ expenses, onDeleteSuccess, onEdit }) => {
 
     if (expenses.length == 0)
         return (
@@ -32,7 +31,6 @@ const ExpenseTable = ({ expenses, onDeleteSuccess }) => {
         )
 
     const [deletingId, setDeletingId] = useState(null);
-    const [updatingId, setUpdatingId] = useState(null);
 
     const handleDelete = async (id) => {
         setDeletingId(id)
@@ -86,13 +84,13 @@ const ExpenseTable = ({ expenses, onDeleteSuccess }) => {
                         <TableCell className="text-right" >
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild >
-                                    <Button variant="ghost" size="icon" disabled={deletingId === expense.id || updatingId === expense.id} className="size-8">
+                                    <Button variant="ghost" size="icon" disabled={deletingId === expense.id} className="size-8">
                                         <MoreHorizontalIcon />
                                         <span className="sr-only">Open menu</span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onEdit(expense)}>Edit</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => {
                                         if (confirm("Are you sure, you want to delete this expense")) {
