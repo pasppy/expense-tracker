@@ -63,7 +63,6 @@ export async function POST(req) {
 
 export async function GET(req) {
     try {
-
         const { session, supabase } = await authCheck();
 
         if (!session)
@@ -78,7 +77,26 @@ export async function GET(req) {
         const endDate = searchParams.get('end');
 
         // database select query 
-        const { data, error } = await supabase.from("expenses").select("*, categories(name)").gte("expense_date", startDate).lte("expense_date", endDate).order('expense_date', { ascending: false }).order("created_at", { ascending: false });
+        let query = supabase
+            .from("expenses")
+            .select("*, categories(name)")
+            .order('expense_date', { ascending: false })
+            .order("created_at", { ascending: false });
+
+
+        // apply filters
+        if (startDate && endDate) {
+            query = query
+                .gte("expense_date", startDate)
+                .lte("expense_date", endDate)
+        }
+
+        if (startDate) {
+            query = query
+                .gte("expense_date", startDate)
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             return NextResponse.json({

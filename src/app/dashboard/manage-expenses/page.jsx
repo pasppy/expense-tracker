@@ -88,7 +88,7 @@ export default function Manage_Expenses() {
     }, [updateExpense])
 
     useEffect(() => {
-        if (amount != updateExpense?.amount || note != updateExpense?.note || date != updateExpense?.expense_date || categoryId != updateExpense?.category_id )
+        if (amount != updateExpense?.amount || note != updateExpense?.note || date != updateExpense?.expense_date || categoryId != updateExpense?.category_id)
             setIsUpdateFieldsChanged(true);
         else
             setIsUpdateFieldsChanged(false);
@@ -233,7 +233,7 @@ export default function Manage_Expenses() {
             category_id: categoryId, amount: Number(amount), expense_date: format(date, "yyyy-MM-dd"), note
         }
 
-        
+
         const res = await fetch(`/api/expense/${updateExpense?.id}`, {
             method: "PUT",
             headers: {
@@ -258,7 +258,7 @@ export default function Manage_Expenses() {
 
     }
 
-    return (<div className="pt-8">
+    return (<div className="">
         <Card className={"w-full mx-auto max-w-250"}>
             {/* add category modal */}
             <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
@@ -422,6 +422,7 @@ export default function Manage_Expenses() {
 
 
             <CardHeader>
+                <CardTitle>Manage Expenses</CardTitle>
                 <CardDescription>
                     Add your expense
                 </CardDescription>
@@ -542,8 +543,8 @@ export default function Manage_Expenses() {
 
         {/* expense history */}
         <Card className="w-full mx-auto max-w-250 mt-8">
-            <CardHeader>
-                <CardTitle>All Expenses</CardTitle>
+            <CardHeader className={"flex justify-between items-center"}>
+                <CardTitle>Expense History</CardTitle>
                 {/* <CardDescription>
                     
                 </CardDescription> */}
