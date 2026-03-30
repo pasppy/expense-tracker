@@ -1,7 +1,6 @@
 import { supabaseServerClient } from "@/lib/supabase/server-client";
 import { NextResponse } from "next/server";
 
-
 const authCheck = async () => {
     const supabase = await supabaseServerClient();
     const { data: { session } } = await supabase.auth.getSession();
@@ -9,8 +8,7 @@ const authCheck = async () => {
     return { session, supabase };
 }
 
-
-export async function GET(req) {
+export async function DELETE(req, { params }) {
     try {
         const { session, supabase } = await authCheck();
 
@@ -21,38 +19,44 @@ export async function GET(req) {
                 error: "Unauthorized user"
             })
 
-        // database select query 
-        const { data, error } = await supabase.from('categories').select("id, name, created_at, updated_at");
 
-        if (error) {
+        const { id } = await params;
 
+        if (!id) {
+            return NextResponse.json({
+                success: false,
+                statusCode: 400,
+                error: "Bad Request"
+            })
+        }
+
+        // database query
+        const { data, error } = await supabase.from('categories').delete().eq("id", id)
+
+        if (error)
             return NextResponse.json({
                 success: false,
                 statusCode: 500,
                 error: error.message
             })
-        }
 
-        // returning data
         return NextResponse.json({
             success: true,
             statusCode: 200,
-            data
+            message: `Expense deleted successfully`
         })
-    }
-    catch (err) {
+
+    } catch (error) {
         return NextResponse.json({
             success: false,
             statusCode: 500,
             error: "Internal Server Error"
         })
     }
-
-
 }
 
-export async function POST(req) {
 
+export async function PUT(req, { params }) {
     try {
         const { session, supabase } = await authCheck();
 
@@ -64,13 +68,32 @@ export async function POST(req) {
             })
 
 
-        const { name } = await req.json();
+        const { id } = await params;
+        if (!id) {
+            return NextResponse.json({
+                success: false,
+                statusCode: 400,
+                error: "Bad Request"
+            })
+        }
+
+        const { category_id, amount, expense_date, note } = await req.json();
+
+        if (amount <= 0 || !category_id || !expense_date) {
+            return NextResponse.json({
+                success: false,
+                statusCode: 400,
+                error: "Bad Request"
+            })
+        }
 
         // database query
-        const { data, error } = await supabase.from('categories').insert({
-            user_id: session.user.id,
-            name
-        })
+        const { data, error } = await supabase.from('categories').update({
+            category_id,
+            amount,
+            expense_date,
+            note
+        }).eq("id", id)
 
         if (error)
             return NextResponse.json({
@@ -82,7 +105,7 @@ export async function POST(req) {
         return NextResponse.json({
             success: true,
             statusCode: 201,
-            message: `${name} category created successfully`
+            message: `Expense updated successfully`
         })
 
     } catch (error) {
@@ -92,6 +115,4 @@ export async function POST(req) {
             error: "Internal Server Error"
         })
     }
-
-
 }

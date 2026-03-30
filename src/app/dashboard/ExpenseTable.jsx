@@ -51,7 +51,8 @@ const ExpenseTable = ({ expenses, onDeleteSuccess, onEdit }) => {
     }
 
 
-    return (<div className="w-full overflow-x-auto">
+    return (
+    <div className="w-full overflow-x-auto">
         <Table className={" "}>
             <TableHeader>
                 <TableRow>

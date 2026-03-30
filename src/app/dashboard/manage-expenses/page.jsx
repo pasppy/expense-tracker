@@ -29,7 +29,7 @@ import {
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { toast } from "sonner"
-import ExpenseTable from "./ExpenseTable"
+import ExpenseTable from "../ExpenseTable"
 import { no } from "zod/v4/locales"
 
 export default function Manage_Expenses() {
@@ -258,7 +258,8 @@ export default function Manage_Expenses() {
 
     }
 
-    return (<div className="">
+    return (
+    <div className="">
         <Card className={"w-full mx-auto max-w-250"}>
             {/* add category modal */}
             <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
