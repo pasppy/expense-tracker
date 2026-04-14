@@ -6,7 +6,7 @@ A modern, full-stack expense tracking application designed to help users **monit
 
 ## 🚀 Live Demo
 
-👉 *https://expense-tracker-cyan-nine-41.vercel.app/*
+👉 *https://expra.vercel.app/*
 
 ---
 
