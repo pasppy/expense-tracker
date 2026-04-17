@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DialogFooter, DialogHeader, DialogTitle, DialogContent, Dialog } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -37,20 +37,35 @@ export default function Manage_Categories() {
 
     const handleDelete = async (id) => {
         setDeletingId(id)
-        const res = await fetch(`/api/category/${id}`, {
-            method: "DELETE"
-        })
+        let confirmation = true;
 
-        const { message, error } = await res.json();
-        if (error) {
-            toast.error(error, { position: 'top-right' })
-            setDeletingId(null)
-            return
+        const expenses = await fetch(`/api/expense?category=${id}`);
+        const { data } = await expenses.json();
+
+        if (data.length > 0) {
+            confirmation = confirm("All expenses under this category will get deleted. Do you want to continue?")
         }
 
-        toast.success(message, { position: "top-right" })
-        getCategories();
+        if (confirmation) {
+
+            const res = await fetch(`/api/category/${id}`, {
+                method: "DELETE"
+            })
+
+            const { message, error } = await res.json();
+
+            if (error) {
+                toast.error(error, { position: 'top-right' })
+                setDeletingId(null)
+                return
+            }
+
+            toast.success(message, { position: "top-right" })
+            getCategories();
+        }
+
         setDeletingId(null)
+
     }
 
     useEffect(() => {
@@ -88,7 +103,7 @@ export default function Manage_Categories() {
         setIsUpdating(true);
 
         if (!newCategory) {
-            toast.warning('Please ', { position: "top-right" })
+            toast.warning('Enter a category', { position: "top-right" })
             setIsUpdating(false);
             setIsEditModalOpen(false);
             setUpdateCategory({});
@@ -111,7 +126,7 @@ export default function Manage_Categories() {
             toast.error(error, { position: "top-right" });
 
         else {
-            getExpenses();
+            getCategories();
             toast.success(message, { position: "top-right" });
         }
 
@@ -214,7 +229,7 @@ export default function Manage_Categories() {
                 <CardHeader className={"flex justify-between items-center"}>
                     <CardTitle>Categories</CardTitle>
                 </CardHeader>
-                <CardContent >
+                <CardContent className={"max-w-[calc(100dvw-2.2rem)]"}>
                     <div className="w-full overflow-x-auto">
                         <Table className={" "}>
                             <TableHeader>
@@ -241,7 +256,7 @@ export default function Manage_Categories() {
                                             {format(category?.updated_at, "yyyy-MM-dd")}
                                         </TableCell>
 
-                                        <TableCell className={""}>
+                                        <TableCell className={"text-right"}>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild >
                                                     <Button variant="ghost" size="icon" disabled={deletingId === category.id} className="size-8">
@@ -257,9 +272,7 @@ export default function Manage_Categories() {
                                                     }}>Edit</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem onClick={() => {
-                                                        if (confirm("Are you sure, you want to delete this expense")) {
-                                                            handleDelete(category.id)
-                                                        }
+                                                        handleDelete(category.id)
                                                     }}
                                                         variant="destructive">
                                                         Delete

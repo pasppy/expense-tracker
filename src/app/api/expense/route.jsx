@@ -75,11 +75,12 @@ export async function GET(req) {
         const { searchParams } = new URL(req.url);
         const startDate = searchParams.get('start');
         const endDate = searchParams.get('end');
+        const categoryId = searchParams.get('category');
 
         // database select query 
         let query = supabase
             .from("expenses")
-            .select("*, categories(name)")
+            .select("*, categories( name)")
             .order('expense_date', { ascending: false })
             .order("created_at", { ascending: false });
 
@@ -94,6 +95,11 @@ export async function GET(req) {
         if (startDate) {
             query = query
                 .gte("expense_date", startDate)
+        }
+
+        // if specific category expenses needed
+        if (categoryId) {
+            query = query.eq("category_id", categoryId);
         }
 
         const { data, error } = await query;

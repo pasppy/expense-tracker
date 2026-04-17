@@ -43,7 +43,7 @@ export async function DELETE(req, { params }) {
         return NextResponse.json({
             success: true,
             statusCode: 200,
-            message: `Expense deleted successfully`
+            message: `Category deleted successfully`
         })
 
     } catch (error) {
@@ -77,9 +77,9 @@ export async function PUT(req, { params }) {
             })
         }
 
-        const { category_id, amount, expense_date, note } = await req.json();
+        const { name } = await req.json();
 
-        if (amount <= 0 || !category_id || !expense_date) {
+        if (!name) {
             return NextResponse.json({
                 success: false,
                 statusCode: 400,
@@ -89,10 +89,7 @@ export async function PUT(req, { params }) {
 
         // database query
         const { data, error } = await supabase.from('categories').update({
-            category_id,
-            amount,
-            expense_date,
-            note
+            name
         }).eq("id", id)
 
         if (error)
@@ -105,7 +102,7 @@ export async function PUT(req, { params }) {
         return NextResponse.json({
             success: true,
             statusCode: 201,
-            message: `Expense updated successfully`
+            message: `Category updated successfully`
         })
 
     } catch (error) {

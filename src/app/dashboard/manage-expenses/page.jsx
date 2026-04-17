@@ -72,6 +72,7 @@ export default function Manage_Expenses() {
         }
         setExpenses(data ?? [])
     }
+
     useEffect(() => {
         if (updateExpense) {
             setAmount(updateExpense?.amount)
@@ -259,329 +260,334 @@ export default function Manage_Expenses() {
     }
 
     return (
-    <div className="">
-        <Card className={"w-full mx-auto max-w-250"}>
-            {/* add category modal */}
-            <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
-                setIsEditModalOpen(open);
-                if (!open) resetStuff();
-            }}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Add Category</DialogTitle>
-                    </DialogHeader>
+        <div className="">
+            <Card className={"w-full mx-auto max-w-250"}>
+                {/* add category modal */}
+                <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
+                    setIsEditModalOpen(open);
+                    if (!open) resetStuff();
+                }}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Add Category</DialogTitle>
+                        </DialogHeader>
 
-                    <div className="grid gap-4">
-                        <Label htmlFor="new-category">Category name</Label>
-                        <Input
-                            id="new-category"
-                            value={newCategory}
-                            onChange={(e) => setNewCategory(e.target.value)}
-                            placeholder="e.g. Groceries"
-                        />
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setIsCategoryModalOpen(false);
-                                setNewCategory("");
-                            }}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            onClick={addCategory}
-                            disabled={!newCategory.trim() || addingCategory}
-                        >
-                            {addingCategory ? "Adding... " : "Add"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* edit modal */}
-            <Dialog open={isEditModalOpen} onOpenChange={(open) => {
-                setIsEditModalOpen(open);
-                if (!open)
-                    setUpdateExpense(null);
-            }}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Expense</DialogTitle>
-                    </DialogHeader>
-
-                    {/* add fields */}
-                    <div className="flex flex-wrap gap-6">
-
-                        {/* category */}
-                        <div className="grid gap-3">
-                            <div className="flex items-center">
-                                <Label htmlFor="category">Category</Label>
-                            </div>
-
-                            <NativeSelect
-                                id="category"
-                                value={categoryId}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setCategoryId(value);
-                                }}
-                            >
-
-                                {categories.map((cat) => (
-                                    <NativeSelectOption
-                                        key={cat.id}
-                                        value={cat.id}
-                                    >
-                                        {cat.name}
-                                    </NativeSelectOption>
-                                ))}
-                            </NativeSelect>
-                        </div>
-
-                        {/* amount */}
-                        <div className="grid gap-3">
-                            <div className="flex items-center">
-                                <Label htmlFor="amount">Amount</Label>
-                            </div>
-                            <Input id="amount"
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="Add amount"
-                                required />
-                        </div>
-
-                        {/* date */}
-                        <div>
-                            <Field className=" grid gap-2">
-                                <FieldLabel htmlFor="date-picker-simple">Date</FieldLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            id="date-picker-simple"
-                                            className=" font-normal"
-                                        >
-
-                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
-
-                                            <CalendarIcon className="h-4 w-4 opacity-50" />
-
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={date}
-                                            onSelect={setDate}
-                                            defaultMonth={date}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </Field>
-                        </div>
-
-                        {/* note */}
-                        <div className="grid gap-2">
-                            <div className="flex items-center">
-                                <Label htmlFor="note">Note<span className="text-sm text-muted-foreground italic font-medium">(Optional)</span></Label>
-                            </div>
-                            <Input id="note"
-                                type="text"
-                                value={note}
-                                onChange={(e) => setNote(e.target.value)}
-                                placeholder="Add note"
+                        <div className="grid gap-4">
+                            <Label htmlFor="new-category">Category name</Label>
+                            <Input
+                                id="new-category"
+                                value={newCategory}
+                                onChange={(e) => setNewCategory(e.target.value)}
+                                placeholder="e.g. Groceries"
                             />
                         </div>
 
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setIsEditModalOpen(false);
-                                setUpdateExpense(null);
-                            }}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            onClick={updateExpenseHandler}
-                            disabled={isUpdating || !isUpdateFieldsChanged}
-                        >
-                            {isUpdating ? "Updating..." : "Update"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-
-            <CardHeader>
-                <CardTitle>Manage Expenses</CardTitle>
-                <CardDescription>
-                    Add your expense
-                </CardDescription>
-            </CardHeader>
-            <form onSubmit={addExpense} noValidate>
-                <CardContent>
-                    <div className="flex flex-wrap gap-6">
-
-                        {/* category */}
-                        <div className="grid gap-3">
-                            <div className="flex items-center">
-                                <Label htmlFor="category">Category</Label>
-                            </div>
-
-                            <NativeSelect
-                                id="category"
-                                value={categoryId}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-
-                                    if (value === "__add__") {
-                                        setIsCategoryModalOpen(true);
-                                        setCategoryId("");
-                                        return;
-                                    }
-
-                                    setCategoryId(value);
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsCategoryModalOpen(false);
+                                    setNewCategory("");
                                 }}
                             >
-                                <NativeSelectOption value="" disabled hidden>
-                                    Select category
-                                </NativeSelectOption>
+                                Cancel
+                            </Button>
 
-                                <NativeSelectOption value="__add__">
-                                    + Add Category
-                                </NativeSelectOption>
+                            <Button
+                                onClick={addCategory}
+                                disabled={!newCategory.trim() || addingCategory}
+                            >
+                                {addingCategory ? "Adding... " : "Add"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-                                {categories.map((cat) => (
-                                    <NativeSelectOption
-                                        key={cat.id}
-                                        value={cat.id}
-                                    >
-                                        {cat.name}
-                                    </NativeSelectOption>
-                                ))}
-                            </NativeSelect>
-                        </div>
+                {/* edit modal */}
+                <Dialog open={isEditModalOpen} onOpenChange={(open) => {
+                    setIsEditModalOpen(open);
+                    if (!open)
+                        setUpdateExpense(null);
+                }}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Edit Expense</DialogTitle>
+                        </DialogHeader>
 
-                        {/* amount */}
-                        <div className="grid gap-3">
-                            <div className="flex items-center">
-                                <Label htmlFor="amount">Amount</Label>
-                            </div>
-                            <Input id="amount"
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="Add amount"
-                                required />
-                        </div>
+                        {/* add fields */}
+                        <div className="flex flex-wrap gap-6">
 
-                        {/* date */}
-                        <div>
-                            <Field className=" grid gap-2">
-                                <FieldLabel htmlFor="date-picker-simple">Date</FieldLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            id="date-picker-simple"
-                                            className=" font-normal"
+                            {/* category */}
+                            <div className="grid gap-3">
+                                <div className="flex items-center">
+                                    <Label htmlFor="category">Category</Label>
+                                </div>
+
+                                <NativeSelect
+                                    id="category"
+                                    value={categoryId}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setCategoryId(value);
+                                    }}
+                                >
+
+                                    {categories.map((cat) => (
+                                        <NativeSelectOption
+                                            key={cat.id}
+                                            value={cat.id}
                                         >
-
-                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
-
-                                            <CalendarIcon className="h-4 w-4 opacity-50" />
-
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={date}
-                                            onSelect={setDate}
-                                            defaultMonth={date}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </Field>
-                        </div>
-
-                        {/* note */}
-                        <div className="grid gap-2">
-                            <div className="flex items-center">
-                                <Label htmlFor="note">Note<span className="text-sm text-muted-foreground italic font-medium">(Optional)</span></Label>
+                                            {cat.name}
+                                        </NativeSelectOption>
+                                    ))}
+                                </NativeSelect>
                             </div>
-                            <Input id="note"
-                                type="text"
-                                value={note}
-                                onChange={(e) => setNote(e.target.value)}
-                                placeholder="Add note"
-                            />
+
+                            {/* amount */}
+                            <div className="grid gap-3">
+                                <div className="flex items-center">
+                                    <Label htmlFor="amount">Amount</Label>
+                                </div>
+                                <Input id="amount"
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    placeholder="Add amount"
+                                    required />
+                            </div>
+
+                            {/* date */}
+                            <div>
+                                <Field className=" grid gap-2">
+                                    <FieldLabel htmlFor="date-picker-simple">Date</FieldLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                id="date-picker-simple"
+                                                className=" font-normal"
+                                            >
+
+                                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+
+                                                <CalendarIcon className="h-4 w-4 opacity-50" />
+
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={date}
+                                                onSelect={setDate}
+                                                defaultMonth={date}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </Field>
+                            </div>
+
+                            {/* note */}
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="note">Note<span className="text-sm text-muted-foreground italic font-medium">(Optional)</span></Label>
+                                </div>
+                                <Input id="note"
+                                    type="text"
+                                    value={note}
+                                    onChange={(e) => setNote(e.target.value)}
+                                    placeholder="Add note"
+                                />
+                            </div>
+
                         </div>
 
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsEditModalOpen(false);
+                                    setUpdateExpense(null);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                onClick={updateExpenseHandler}
+                                disabled={isUpdating || !isUpdateFieldsChanged}
+                            >
+                                {isUpdating ? "Updating..." : "Update"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
 
-                    </div>
-                </CardContent>
-                <CardFooter className=" mt-8">
-                    <Button type="submit" className="" disabled={addingExpense}>
-                        {addingExpense ? "Adding.." : "Add"}
-                    </Button>
-                </CardFooter>
+                <CardHeader>
+                    <CardTitle>Manage Expenses</CardTitle>
+                    <CardDescription>
+                        Add your expense
+                    </CardDescription>
+                </CardHeader>
+                <form onSubmit={addExpense} noValidate>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-6">
 
-            </form>
+                            {/* category */}
+                            <div className="grid gap-3">
+                                <div className="flex items-center">
+                                    <Label htmlFor="category">Category</Label>
+                                </div>
 
-        </Card>
+                                <NativeSelect
+                                    id="category"
+                                    value={categoryId}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
 
-        {/* expense history */}
-        <Card className="w-full mx-auto max-w-250 mt-8">
-            <CardHeader className={"flex justify-between items-center"}>
-                <CardTitle>Expense History</CardTitle>
-                {/* <CardDescription>
+                                        if (value === "__add__") {
+                                            setIsCategoryModalOpen(true);
+                                            setCategoryId("");
+                                            return;
+                                        }
+
+                                        setCategoryId(value);
+                                    }}
+                                >
+                                    <NativeSelectOption value="" disabled hidden>
+                                        Select category
+                                    </NativeSelectOption>
+
+                                    <NativeSelectOption value="__add__">
+                                        + Add Category
+                                    </NativeSelectOption>
+
+                                    {categories.map((cat) => (
+                                        <NativeSelectOption
+                                            key={cat.id}
+                                            value={cat.id}
+                                        >
+                                            {cat.name}
+                                        </NativeSelectOption>
+                                    ))}
+                                </NativeSelect>
+                            </div>
+
+                            {/* amount */}
+                            <div className="grid gap-3">
+                                <div className="flex items-center">
+                                    <Label htmlFor="amount">Amount</Label>
+                                </div>
+                                <Input id="amount"
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    placeholder="Add amount"
+                                    required />
+                            </div>
+
+                            {/* date */}
+                            <div>
+                                <Field className=" grid gap-2">
+                                    <FieldLabel htmlFor="date-picker-simple">Date</FieldLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                id="date-picker-simple"
+                                                className=" font-normal"
+                                            >
+
+                                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+
+                                                <CalendarIcon className="h-4 w-4 opacity-50" />
+
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={date}
+                                                onSelect={setDate}
+                                                defaultMonth={date}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </Field>
+                            </div>
+
+                            {/* note */}
+                            <div className="grid gap-2">
+                                <div className="flex items-center">
+                                    <Label htmlFor="note">Note<span className="text-sm text-muted-foreground italic font-medium">(Optional)</span></Label>
+                                </div>
+                                <Input id="note"
+                                    type="text"
+                                    value={note}
+                                    onChange={(e) => setNote(e.target.value)}
+                                    placeholder="Add note"
+                                />
+                            </div>
+
+
+
+                        </div>
+                    </CardContent>
+                    <CardFooter className=" mt-8">
+                        <Button type="submit" className="" disabled={addingExpense}>
+                            {addingExpense ? "Adding.." : "Add"}
+                        </Button>
+                    </CardFooter>
+
+                </form>
+
+            </Card>
+
+            {/* expense history */}
+            <Card className="w-full mx-auto max-w-250 mt-8">
+                <CardHeader className={"flex justify-between items-center"}>
+                    <CardTitle>Expense History</CardTitle>
+                    {/* <CardDescription>
                     
                 </CardDescription> */}
 
-                <CardAction>
-                    <NativeSelect
-                        id="range-selector"
-                        value={rangeSelector}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setRangeSelector(value);
-                        }}
-                    >
-                        <NativeSelectOption value="this_month">
-                            This Month
-                        </NativeSelectOption>
-                        <NativeSelectOption value="28_days">
-                            Last 28 days
-                        </NativeSelectOption>
-                        <NativeSelectOption value="6_months">
-                            Last 6 months
-                        </NativeSelectOption>
+                    <CardAction>
+                        <NativeSelect
+                            id="range-selector"
+                            value={rangeSelector}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setRangeSelector(value);
+                            }}
+                        >
+                            <NativeSelectOption value="this_month">
+                                This Month
+                            </NativeSelectOption>
+                            <NativeSelectOption value="28_days">
+                                Last 28 days
+                            </NativeSelectOption>
+                            <NativeSelectOption value="6_months">
+                                Last 6 months
+                            </NativeSelectOption>
 
-                    </NativeSelect>
-                </CardAction>
-            </CardHeader>
-            <CardContent>
-                <ExpenseTable expenses={expenses} onDeleteSuccess={getExpenses} onEdit={(expenses) => {
-                    setUpdateExpense(expenses);
-                    setIsEditModalOpen(true);
-                }} />
-            </CardContent>
-            <CardFooter className="">
+                        </NativeSelect>
+                    </CardAction>
+                </CardHeader>
 
-            </CardFooter>
-        </Card>
-    </div >)
+                <CardContent className={"max-w-[calc(100vw-2.2rem)]"}>
+                    <div className="">
+
+                        <ExpenseTable expenses={expenses} onDeleteSuccess={getExpenses} onEdit={(expenses) => {
+                            setUpdateExpense(expenses);
+                            setIsEditModalOpen(true);
+                        }} />
+                    </div>
+
+                </CardContent>
+                <CardFooter className="">
+
+                </CardFooter>
+            </Card>
+        </div >)
 }
 

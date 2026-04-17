@@ -52,63 +52,63 @@ const ExpenseTable = ({ expenses, onDeleteSuccess, onEdit }) => {
 
 
     return (
-    <div className="w-full overflow-x-auto">
-        <Table className={" "}>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className={"md:w-32"}>Category</TableHead>
-                    <TableHead className={"text-center"}>Amount</TableHead>
-                    <TableHead className={" text-center"}>Note</TableHead>
-                    <TableHead className={"text-center"}>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-
-            <TableBody>
-                {expenses.map((expense) => (
-                    <TableRow key={expense.id}>
-                        <TableCell >
-                            {expense.categories?.name ?? "-"}
-                        </TableCell>
-
-                        <TableCell className={"text-center"}>
-                            ₹{expense.amount}
-                        </TableCell>
-
-                        <TableCell className={" text-center whitespace-normal wrap-break-word "}>
-                            {expense.note || "-"}
-                        </TableCell>
-
-                        <TableCell className={"text-center "}>
-                            {expense.expense_date}
-                        </TableCell>
-                        <TableCell className="text-right" >
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild >
-                                    <Button variant="ghost" size="icon" disabled={deletingId === expense.id} className="size-8">
-                                        <MoreHorizontalIcon />
-                                        <span className="sr-only">Open menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => onEdit(expense)}>Edit</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => {
-                                        if (confirm("Are you sure, you want to delete this expense")) {
-                                            handleDelete(expense.id)
-                                        }
-                                    }}
-                                        variant="destructive">
-                                        Delete
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
+        <div className="w-full overflow-x-auto">
+            <Table className={" "}>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className={""}>Category</TableHead>
+                        <TableHead className={"text-center"}>Amount</TableHead>
+                        <TableHead className={" text-center"}>Note</TableHead>
+                        <TableHead className={"text-center"}>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table >
-    </div>
+                </TableHeader>
+
+                <TableBody>
+                    {expenses.map((expense) => (
+                        <TableRow key={expense.id}>
+                            <TableCell >
+                                {expense.categories?.name ?? "-"}
+                            </TableCell>
+
+                            <TableCell className={"text-center"}>
+                                ₹{expense.amount}
+                            </TableCell>
+
+                            <TableCell className={" text-center whitespace-normal"}>
+                                {expense.note || "-"}
+                            </TableCell>
+
+                            <TableCell className={"text-center "}>
+                                {expense.expense_date}
+                            </TableCell>
+                            <TableCell className="text-right" >
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild >
+                                        <Button variant="ghost" size="icon" disabled={deletingId === expense.id} className="size-8">
+                                            <MoreHorizontalIcon />
+                                            <span className="sr-only">Open menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => onEdit(expense)}>Edit</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => {
+                                            if (confirm("Are you sure, you want to delete this expense")) {
+                                                handleDelete(expense.id)
+                                            }
+                                        }}
+                                            variant="destructive">
+                                            Delete
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table >
+        </div>
     )
 }
 
