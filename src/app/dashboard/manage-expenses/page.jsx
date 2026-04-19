@@ -30,7 +30,6 @@ import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { toast } from "sonner"
 import ExpenseTable from "../ExpenseTable"
-import { no } from "zod/v4/locales"
 
 export default function Manage_Expenses() {
     const [date, setDate] = useState(new Date());
@@ -142,13 +141,23 @@ export default function Manage_Expenses() {
     const addCategory = async () => {
         setAddingCategory(true)
 
+        const duplicateCheck = categories.filter(c => c?.name.toLowerCase() === newCategory.toLowerCase());
+
+        if (duplicateCheck.length > 0) {
+            setIsCategoryModalOpen(false);
+            setNewCategory("");
+            setAddingCategory(false)
+
+            toast.error(`${newCategory} category already exists.`, { position: "top-right" });
+            return;
+        }
         const res = await fetch("/api/category", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                name: newCategory
+                name: newCategory.trim()
             }),
         });
 
@@ -170,7 +179,7 @@ export default function Manage_Expenses() {
         e.preventDefault();
         setAddingExpense(true);
 
-        setAmount(Number(amount));
+        setAmount(Number(amount.trim()));
 
         if (!categoryId || !amount || !date) {
             if (!categoryId)
@@ -186,7 +195,7 @@ export default function Manage_Expenses() {
         }
 
         const payload = {
-            category_id: categoryId, amount: Number(amount), expense_date: format(date, "yyyy-MM-dd"), note
+            category_id: categoryId, amount: Number(amount), expense_date: format(date, "yyyy-MM-dd"), note: note.trim()
         }
 
         const res = await fetch("/api/expense", {
@@ -261,11 +270,12 @@ export default function Manage_Expenses() {
 
     return (
         <div className="">
+            {/* add expense */}
             <Card className={"w-full mx-auto max-w-250"}>
                 {/* add category modal */}
                 <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
-                    setIsEditModalOpen(open);
-                    if (!open) resetStuff();
+                    setIsCategoryModalOpen(open);
+                    setNewCategory("");
                 }}>
                     <DialogContent>
                         <DialogHeader>
@@ -422,7 +432,7 @@ export default function Manage_Expenses() {
                     </DialogContent>
                 </Dialog>
 
-
+                {/* add expense */}
                 <CardHeader>
                     <CardTitle>Manage Expenses</CardTitle>
                     <CardDescription>
@@ -547,9 +557,6 @@ export default function Manage_Expenses() {
             <Card className="w-full mx-auto max-w-250 mt-8">
                 <CardHeader className={"flex justify-between items-center"}>
                     <CardTitle>Expense History</CardTitle>
-                    {/* <CardDescription>
-                    
-                </CardDescription> */}
 
                     <CardAction>
                         <NativeSelect

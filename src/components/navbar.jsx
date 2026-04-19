@@ -1,19 +1,10 @@
 'use client'
-import { Button } from "@/components/ui/button"
-import { supabaseBroswerClient } from "@/lib/supabase/browser-client";
+import { useAuth } from "@/hooks/auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 const Navbar = () => {
     const router = useRouter();
-    const supabase = supabaseBroswerClient();
-    const [session, setSession] = useState(null)
-
-    useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            setSession(data?.session)
-        })
-    }, [])
+    const { user } = useAuth();
 
     const buttonHandler = (event) => {
         if (event === "login")
@@ -29,9 +20,9 @@ const Navbar = () => {
             <div className=''>
                 <button
                     className="cursor-pointer border border-vibe-foreground bg-vibe text-white px-3 py-1 rounded-md"
-                    onClick={session ? (() => buttonHandler("dashboard")) : (() => buttonHandler("login"))}
+                    onClick={user ? (() => buttonHandler("dashboard")) : (() => buttonHandler("login"))}
                 >
-                    {session ? "Dashboard" : "Login"}
+                    {user ? "Dashboard" : "Login"}
                 </button>
             </div>
         </nav>

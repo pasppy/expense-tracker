@@ -3,33 +3,29 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { useAuth } from "@/hooks/auth";
 
 
 export default function DashboardLayout({ children }) {
 
     const router = useRouter();
-    const [user, setUser] = useState(null)
-    const [loading, setLoading] = useState(true)
+
+    const { user, loading, getUser } = useAuth();
 
     useEffect(() => {
-        (async () => {
-            const res = await fetch('/api/user');
-            const { user } = await res.json();
+        getUser()
+    }, []);
 
-            if (!user) {
-                return router.replace('/login-signup');
-            }
-            setUser(user);
-            setLoading(false)
-        })()
-
-    }, [])
+    useEffect(() => {
+        if (!loading && !user) {
+            return router.replace('/login-signup');
+        }
+    }, [user])
 
     if (loading)
         return null;
 
     return (
-
         <SidebarProvider >
             <AppSidebar />
             <div className="flex flex-1 flex-col">

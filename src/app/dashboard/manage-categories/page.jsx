@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { DialogFooter, DialogHeader, DialogTitle, DialogContent, Dialog } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,6 @@ export default function Manage_Categories() {
     const [addingCategory, setAddingCategory] = useState(false);
     const [updateCategory, setUpdateCategory] = useState({});
     const [isUpdating, setIsUpdating] = useState(false);
-    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
     const getCategories = async () => {
         const res = await fetch("/api/category");
@@ -70,10 +69,27 @@ export default function Manage_Categories() {
 
     useEffect(() => {
         getCategories();
+
     }, [])
 
-    const addCategory = async () => {
+    const addCategory = async (e) => {
+        e.preventDefault();
         setAddingCategory(true)
+
+        if (!newCategory) {
+            toast.warning('Enter a category name', { position: "top-right" })
+            setAddingCategory(false);
+            return
+        }
+
+        const duplicateCheck = categories.filter(c => c?.name.toLowerCase() === newCategory.toLowerCase());
+
+        if (duplicateCheck.length > 0) {
+            setNewCategory("");
+            setAddingCategory(false);
+            toast.error(`${newCategory} category already exists.`, { position: "top-right" });
+            return;
+        }
 
         const res = await fetch("/api/category", {
             method: "POST",
@@ -81,7 +97,7 @@ export default function Manage_Categories() {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                name: newCategory
+                name: newCategory.trim()
             }),
         });
 
@@ -94,7 +110,6 @@ export default function Manage_Categories() {
             toast.success(message, { position: "top-right" });
         }
 
-        setIsCategoryModalOpen(false);
         setNewCategory("");
         setAddingCategory(false)
     }
@@ -103,14 +118,27 @@ export default function Manage_Categories() {
         setIsUpdating(true);
 
         if (!newCategory) {
-            toast.warning('Enter a category', { position: "top-right" })
+            toast.warning('Enter a category name', { position: "top-right" })
             setIsUpdating(false);
             setIsEditModalOpen(false);
             setUpdateCategory({});
             return
         }
+
+        const duplicateCheck = categories.filter(c => c?.name.toLowerCase() === newCategory.toLowerCase());
+
+        if (duplicateCheck.length > 0) {
+            setIsUpdating(false);
+            setIsEditModalOpen(false);
+            setUpdateCategory({});
+            setNewCategory("");
+
+            toast.error(`${newCategory} category already exists.`, { position: "top-right" });
+            return;
+        }
+
         const payload = {
-            name: newCategory
+            name: newCategory.trim()
         }
 
         const res = await fetch(`/api/category/${updateCategory?.id}`, {
@@ -122,6 +150,7 @@ export default function Manage_Categories() {
         });
 
         const { message, error } = await res.json();
+
         if (error)
             toast.error(error, { position: "top-right" });
 
@@ -134,56 +163,17 @@ export default function Manage_Categories() {
         setIsUpdating(false);
         setIsEditModalOpen(false);
         setUpdateCategory({});
+        setNewCategory("");
     }
 
 
 
     return (
         <div>
-            {/* add category modal */}
-            <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
-                setIsEditModalOpen(open);
-                if (!open) resetStuff();
-            }}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Add Category</DialogTitle>
-                    </DialogHeader>
-
-                    <div className="grid gap-4">
-                        <Label htmlFor="new-category">Category name</Label>
-                        <Input
-                            id="new-category"
-                            value={newCategory}
-                            onChange={(e) => setNewCategory(e.target.value)}
-                            placeholder="e.g. Groceries"
-                        />
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setIsCategoryModalOpen(false);
-                                setNewCategory("");
-                            }}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            onClick={addCategory}
-                            disabled={!newCategory.trim() || addingCategory}
-                        >
-                            {addingCategory ? "Adding... " : "Add"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
             {/* edit modal */}
             <Dialog open={isEditModalOpen} onOpenChange={(open) => {
                 setIsEditModalOpen(open);
+                setNewCategory("")
                 if (!open)
                     setUpdateCategory(null);
             }}>
@@ -210,6 +200,7 @@ export default function Manage_Categories() {
                             onClick={() => {
                                 setIsEditModalOpen(false);
                                 setUpdateCategory({});
+                                setNewCategory("")
                             }}
                         >
                             Cancel
@@ -225,67 +216,108 @@ export default function Manage_Categories() {
                 </DialogContent>
             </Dialog>
 
+            {/* add category */}
+            <Card className={"w-full mx-auto max-w-250"}>
+
+
+                <CardHeader>
+                    <CardTitle>Add Category</CardTitle>
+                    {/* <CardDescription>
+                        Add your expense
+                    </CardDescription> */}
+                </CardHeader>
+                <form onSubmit={addCategory} noValidate>
+                    <CardContent>
+
+                        {/* amount */}
+                        <div className="grid gap-3">
+                            <div className="flex items-center">
+                                <Label htmlFor="amount">Category Name</Label>
+                            </div>
+                            <Input id="amount"
+                                type="text"
+                                value={newCategory}
+                                onChange={(e) => setNewCategory(e.target.value)}
+                                placeholder="Add category"
+                                required />
+                        </div>
+
+                    </CardContent>
+                    <CardFooter className=" mt-8">
+                        <Button type="submit" className="" disabled={addingCategory}>
+                            {addingCategory ? "Adding.." : "Add"}
+                        </Button>
+                    </CardFooter>
+
+                </form>
+
+            </Card>
+
+            {/* category list */}
             <Card className="w-full mx-auto max-w-250 mt-4">
                 <CardHeader className={"flex justify-between items-center"}>
                     <CardTitle>Categories</CardTitle>
                 </CardHeader>
                 <CardContent className={"max-w-[calc(100dvw-2.2rem)]"}>
                     <div className="w-full overflow-x-auto">
-                        <Table className={" "}>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className={"md:w-32"}>Category</TableHead>
-                                    <TableHead className={"text-center"}>Created At</TableHead>
-                                    <TableHead className={"text-center"}>Updated At</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-
-                            <TableBody>
-                                {categories.map((category) => (
-                                    <TableRow key={category.id}>
-
-                                        <TableCell >
-                                            {category?.name ?? "-"}
-                                        </TableCell>
-
-                                        <TableCell className={"text-center "}>
-                                            {format(new Date(category?.created_at), "yyyy-MM-dd")}
-                                        </TableCell>
-                                        <TableCell className={"text-center "}>
-                                            {format(category?.updated_at, "yyyy-MM-dd")}
-                                        </TableCell>
-
-                                        <TableCell className={"text-right"}>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild >
-                                                    <Button variant="ghost" size="icon" disabled={deletingId === category.id} className="size-8">
-                                                        <MoreHorizontalIcon />
-                                                        <span className="sr-only">Open menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => {
-                                                        setUpdateCategory(category);
-                                                        setNewCategory(category.name);
-                                                        setIsEditModalOpen(true);
-                                                    }}>Edit</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => {
-                                                        handleDelete(category.id)
-                                                    }}
-                                                        variant="destructive">
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-
-
+                        {categories.length > 0 ?
+                            <Table className={" "}>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className={"md:w-32"}>Category</TableHead>
+                                        <TableHead className={"text-center"}>Created At</TableHead>
+                                        <TableHead className={"text-center"}>Updated At</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table >
+                                </TableHeader>
+
+                                <TableBody>
+                                    {categories.map((category) => (
+                                        <TableRow key={category.id}>
+
+                                            <TableCell >
+                                                {category?.name ?? "-"}
+                                            </TableCell>
+
+                                            <TableCell className={"text-center "}>
+                                                {format(new Date(category?.created_at), "yyyy-MM-dd")}
+                                            </TableCell>
+                                            <TableCell className={"text-center "}>
+                                                {format(category?.updated_at, "yyyy-MM-dd")}
+                                            </TableCell>
+
+                                            <TableCell className={"text-right"}>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild >
+                                                        <Button variant="ghost" size="icon" disabled={deletingId === category.id} className="size-8">
+                                                            <MoreHorizontalIcon />
+                                                            <span className="sr-only">Open menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => {
+                                                            setUpdateCategory(category);
+                                                            setNewCategory(category.name);
+                                                            setIsEditModalOpen(true);
+                                                        }}>Edit</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={() => {
+                                                            handleDelete(category.id)
+                                                        }}
+                                                            variant="destructive">
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+
+
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table >
+                            : <p className="text-sm text-muted-foreground">Category not added yet.</p>
+                        }
                     </div>
                 </CardContent>
             </Card>

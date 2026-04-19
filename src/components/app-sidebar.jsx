@@ -28,23 +28,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { supabaseBroswerClient } from "@/lib/supabase/browser-client";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/auth";
 
 export function AppSidebar() {
     const pathname = usePathname();
     const router = useRouter();
     const supabase = supabaseBroswerClient();
-    const [user, setUser] = useState(null);
+
+    const { user, userDp } = useAuth();
     const { open, toggleSidebar } = useSidebar();
-
-    useEffect(() => {
-        (async () => {
-            const res = await fetch('/api/user');
-            const { user } = await res.json();
-            setUser(user);
-        })()
-    }, [])
-
 
     const handleLogout = async () => {
         await supabase.auth.signOut({ scope: "local" });
@@ -71,22 +63,19 @@ export function AppSidebar() {
                         open ? "justify-between" : "justify-center"
                     )}
                 >
+                    {/* Info hides automatically on collapse */}
+                    {open && (
+                        <div
+                            className={
+                                "flex items-center gap-3 transition-all flex-row"
+                            }
+                        >
+                            <Avatar className={"h-10 w-10"}>
+                                <AvatarImage src={userDp} className={"object-cover"} />
+                                <AvatarFallback>{user?.user_metadata?.name.split(" ")[0][0]}</AvatarFallback>
 
-                    {/* Avatar + Info */}
-                    <div
-                        className={cn(
-                            "flex items-center gap-3 transition-all",
-                            open ? "flex-row" : "flex-col"
-                        )}
-                    >
-                        <Avatar className={cn(open ? "h-10 w-10" : "h-9 w-9")}>
-                            <AvatarFallback>
-                                {user?.user_metadata?.name[0]}
-                            </AvatarFallback>
-                        </Avatar>
+                            </Avatar>
 
-                        {/* Info hides automatically on collapse */}
-                        {open && (
                             <div className="flex flex-col leading-tight">
                                 <span className="text-sm font-semibold">
                                     {user?.user_metadata?.name}
@@ -95,8 +84,8 @@ export function AppSidebar() {
                                     {user?.email}
                                 </span>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     {/* Collapse Button (ChatGPT style) */}
                     {open && (

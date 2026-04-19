@@ -15,45 +15,34 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/hooks/auth";
 
 
 export default function LoginSignUp() {
     const router = useRouter();
+    const supabase = supabaseBroswerClient();
+
+    const { user, loading } = useAuth();
     const [mode, setMode] = useState('login');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [pass, setPass] = useState('');
-    const [status, setStatus] = useState({})
-    const supabase = supabaseBroswerClient();
     const [showPass, setShowPass] = useState(false);
 
-    useEffect(() => {
-        (async () => {
-            const res = await fetch('/api/user');
-            const { user } = await res.json();
-            console.log(user);
-
-            if (user) {
-                router.replace('/dashboard');
-            }
-        })()
-    }, [])
-
-    const setLogin = () => {
+    const resetLogin = () => {
         setMode("login");
         setName('');
         setEmail('');
         setPass('');
-        setStatus('');
         setShowPass(false);
     }
-    const setSignUp = () => {
+
+    const resetSignUp = () => {
         setMode("signup");
         setName('');
         setEmail('');
         setPass('');
-        setStatus('');
         setShowPass(false);
     }
 
@@ -67,16 +56,12 @@ export default function LoginSignUp() {
                 password: pass,
             });
             if (error) {
-                setStatus({ success: false, message: error.message });
                 toast.error(error.message, { position: "top-right" });
             }
             else {
-                setStatus({ success: true, message: "Logged in successfully" });
                 toast.success("Logged in successfully", { position: "top-right" });
                 setEmail("");
-                setTimeout(() => {
-                    router.replace('/dashboard');
-                }, 500)
+                return router.replace('/dashboard');
             }
         }
         else {
@@ -89,26 +74,28 @@ export default function LoginSignUp() {
                 }
             })
             if (error) {
-                setStatus({ success: false, message: error.message });
                 toast.error(error.message, { position: "top-right" });
             } else {
-                setStatus({ success: true, message: "Account created successfully" });
                 toast.success("Account created successfully", { position: "top-right" });
                 setEmail("");
-                setTimeout(() => {
-                    router.replace('/dashboard');
-                }, 500)
+                return router.replace('/dashboard');
             }
         }
         setPass("")
         setIsLoading(false);
     }
 
+    useEffect(() => {
+        if (!loading && user) return router.replace('/dashboard');
+    })
+
+    if (loading) return null;
+
     return (
         <div className="h-screen w-screen flex flex-col items-center">
             <div className="flex bg-secondary mt-20 mb-8 p-1  rounded-md">
-                <Button variant={`${mode === 'login' ? "default" : "secondary"}`} className='cursor-pointer' onClick={setLogin}>Login</Button>
-                <Button variant={`${mode === 'signup' ? "default" : "secondary"}`} className='cursor-pointer' onClick={setSignUp}>Sign Up</Button>
+                <Button variant={`${mode === 'login' ? "default" : "secondary"}`} className='cursor-pointer' onClick={resetLogin}>Login</Button>
+                <Button variant={`${mode === 'signup' ? "default" : "secondary"}`} className='cursor-pointer' onClick={resetSignUp}>Sign Up</Button>
             </div>
             {mode === "login" ?
                 (

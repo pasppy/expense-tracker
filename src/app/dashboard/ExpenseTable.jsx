@@ -23,13 +23,6 @@ import { useState } from "react";
 
 const ExpenseTable = ({ expenses, onDeleteSuccess, onEdit }) => {
 
-    if (expenses.length == 0)
-        return (
-            <p className="text-sm text-muted-foreground">
-                No expenses found.
-            </p>
-        )
-
     const [deletingId, setDeletingId] = useState(null);
 
     const handleDelete = async (id) => {
@@ -50,6 +43,12 @@ const ExpenseTable = ({ expenses, onDeleteSuccess, onEdit }) => {
         setDeletingId(null)
     }
 
+    if (expenses.length == 0)
+        return (
+            <p className="text-sm text-muted-foreground">
+                No expense found.
+            </p>
+        )
 
     return (
         <div className="w-full overflow-x-auto">
@@ -58,7 +57,7 @@ const ExpenseTable = ({ expenses, onDeleteSuccess, onEdit }) => {
                     <TableRow>
                         <TableHead className={""}>Category</TableHead>
                         <TableHead className={"text-center"}>Amount</TableHead>
-                        <TableHead className={" text-center"}>Note</TableHead>
+                        <TableHead className={" text-center w-[40%] "}>Note</TableHead>
                         <TableHead className={"text-center"}>Date</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
