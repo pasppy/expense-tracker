@@ -28,7 +28,7 @@ const AuthProvider = ({ children }) => {
         const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
             setUser(session?.user ?? null)
         })
-        
+
         return () => listener.subscription.unsubscribe()
 
     }, [])

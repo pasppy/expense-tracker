@@ -3,33 +3,36 @@ import { NextResponse } from "next/server";
 
 const authCheck = async () => {
     const supabase = await supabaseServerClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    return { session, supabase };
+    return { user, supabase };
 }
 
 export async function GET() {
 
     try {
-        const { session, supabase } = await authCheck();
-
-        if (!session)
+        const { user, supabase } = await authCheck();
+        if (!user)
             return NextResponse.json({
                 success: false,
                 statusCode: 401,
                 error: "Unauthorized user"
             })
 
-        const { data } = supabase.storage
-            .from("profile_pic")
-            .getPublicUrl(session?.user?.user_metadata?.profile_pic);
+        let publicUrl = null
 
-        const publicUrl = data.publicUrl;
+        if (user?.user_metadata?.profile_pic) {
+            const { data } = supabase.storage
+                .from("profile_pic")
+                .getPublicUrl(user?.user_metadata?.profile_pic);
+
+            publicUrl = data.publicUrl;
+        }
 
         return NextResponse.json({
             success: true,
             statusCode: 200,
-            user: session?.user,
+            user,
             profile_pic: publicUrl
         })
 
@@ -55,10 +58,10 @@ export async function PATCH(req) {
             const ext = profile_pic?.name.split(".").pop();
             const fileName = `db-${name.toLowerCase().split(" ").join("-")}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.${ext}`
             const { error: storageError } = await supabase.storage.from('profile_pic').upload(fileName, profile_pic)
+
             if (storageError) throw new Error(storageError.message)
 
             profilePicPath = fileName
-
         }
 
         await supabase.auth.updateUser({
