@@ -1,12 +1,21 @@
 "use client"
 import Navbar from "@/components/navbar";
 import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/hooks/auth";
 import { Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+const Loader = () => {
+    return <div className="fixed bg-background top-0 left-0 w-full h-dvh z-50 flex justify-center items-center">
+        <div className="loader"></div>
+    </div>
+}
+
 export default function Home() {
     const [isPaused, setIsPaused] = useState(true);
-    const videoRef = useRef();
+    const videoRef = useRef(null);
+    const { loading, user } = useAuth();
+
     useEffect(() => {
         if (!isPaused)
             videoRef.current.play();
@@ -14,7 +23,9 @@ export default function Home() {
             videoRef.current.pause();
     }, [isPaused]);
 
+
     return <div className="px-4 sm:px-8 md:px-12">
+        {(loading && !user) && <Loader />}
         <Navbar />
         <main>
             <div>
@@ -27,7 +38,7 @@ export default function Home() {
                             <Play />
                         </div>
                     </div>
-                    <video ref={videoRef} className="object-cover aspect-square md:aspect-auto rounded-xl" src="/app-demo.webm"></video>
+                    <video ref={videoRef} preload="auto" className="object-cover aspect-square md:aspect-auto rounded-xl" src="/app-demo.webm"></video>
                 </div>
             </div>
         </main>

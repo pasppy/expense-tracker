@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/auth";
-import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
@@ -14,48 +15,83 @@ export default function ProfilePage() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [updatedName, setUpdatedName] = useState("");
+    const [prevName, setPrevName] = useState("");
     const [profilePic, setProfilePic] = useState(null);
+    const fileInputRef = useRef();
 
     useEffect(() => {
-        setUpdatedName(user?.user_metadata?.name)
+        setPrevName(user?.user_metadata?.name)
+        setUpdatedName(prevName);
     }, [user])
 
     const editHandler = async () => {
-        setIsUpdating(true);
+        try {
+            setIsUpdating(true);
 
-        if (!updatedName) {
-            toast.warning("name can't be empty.", { position: "top-right" })
-            setIsUpdating(false);
-            setIsEditModalOpen(false);
-            setUpdatedName(user?.user_metadata?.name)
-            return
-        }
+            if (!updatedName) {
+                setIsUpdating(false);
+                throw new Error("Name can't be empty");
+            }
 
+            let pathName = null;
 
-        const formData = new FormData();
-        formData.append("name", updatedName);
-        formData.append("profile_pic", profilePic);
+            if (profilePic) {
+                const allowedExt = ["jpeg", "jpg", "png", "webp"]
+                const ext = profilePic?.name.split(".").pop();
 
-        const res = await fetch(`/api/user`, {
-            method: "PATCH",
-            body: formData,
-        });
+                if (!allowedExt.includes(ext)) {
+                    throw new Error("Invalid file type");
+                }
+                // generate signed url
+                const res = await fetch(`/api/file-url?ext=${ext}`);
+                const { path, signedUrl } = await res.json();
+                pathName = path;
 
-        const { message, error } = await res.json();
+                // upload to storage using signed url
+                const uploadRes = await fetch(signedUrl, {
+                    method: 'PUT',
+                    body: profilePic,  // file from the user taken from input
+                    headers: {
+                        "Content-Type": profilePic.type
+                    }
+                })
 
-        if (error) {
-            toast.error(error, { position: "top-right" });
-            setUpdatedName(user?.user_metadata?.name)
-        }
+                if (!uploadRes.ok) {
+                    throw new Error("Avatar upload failed");
+                }
+            }
 
-        else {
+            const payload = {
+                name: updatedName,
+                path: pathName
+            }
+
+            const res = await fetch(`/api/user`, {
+                method: "PATCH",
+                body: JSON.stringify(payload),
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error);
+            }
+
+            // on success
             getUser();
-            toast.success(message, { position: "top-right" });
-        }
+            toast.success(data.message, { position: "top-right" });
 
-        // after finished executing
-        setIsUpdating(false);
-        setIsEditModalOpen(false);
+            setProfilePic(null);
+            setIsEditModalOpen(false);
+            setIsUpdating(false);
+
+        } catch (error) {
+            console.log(error.message);
+            toast.error(error.message, { position: "top-right" });
+        }
     }
 
     return (
@@ -63,6 +99,8 @@ export default function ProfilePage() {
             {/* edit modal */}
             <Dialog open={isEditModalOpen} onOpenChange={(open) => {
                 setIsEditModalOpen(open);
+                setProfilePic(null);
+                setUpdatedName(prevName);
             }}>
                 <DialogContent>
                     <DialogHeader>
@@ -74,12 +112,19 @@ export default function ProfilePage() {
                         <div className="">
                             <Label htmlFor="profile-pic" className={"ml-3 text-sm text-muted-foreground"}>Profile Pic</Label>
 
-                            <Input
-                                id="profile-pic"
-                                type={"file"}
-                                accept={"image/*"}
-                                onChange={(e) => setProfilePic(e.target.files[0])}
-                            />
+                            <div className="flex gap-2 items-center">
+                                <Input
+                                    id="profile-pic"
+                                    type={"file"}
+                                    ref={fileInputRef}
+                                    accept={"image/*"}
+                                    onChange={(e) => setProfilePic(e.target.files[0])}
+                                />
+                                <Button onClick={() => {
+                                    fileInputRef.current.value = ""
+                                    setProfilePic(null)
+                                }}  >Clear</Button>
+                            </div>
                         </div>
 
                         <div className="">
@@ -96,8 +141,9 @@ export default function ProfilePage() {
                         <Button
                             variant="outline"
                             onClick={() => {
-                                setIsEditModalOpen(false)
-                                setUpdatedName(user?.user_metadata?.name)
+                                setIsEditModalOpen(false);
+                                setProfilePic(null);
+                                setUpdatedName(prevName);
                             }}
                         >
                             Cancel
@@ -105,7 +151,9 @@ export default function ProfilePage() {
 
                         <Button
                             onClick={editHandler}
-                            disabled={isUpdating || (updatedName == user?.user_metadata?.name && !profilePic)}
+                            variant=""
+                            disabled={isUpdating || (updatedName == prevName && !profilePic)}
+                            className={"bg-yellow-600"}
                         >
                             {isUpdating ? "Updating..." : "Update"}
                         </Button>

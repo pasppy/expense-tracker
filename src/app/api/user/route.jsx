@@ -45,29 +45,16 @@ export async function GET() {
     }
 }
 export async function PATCH(req) {
-
     try {
         const { supabase } = await authCheck();
+        const { name, path } = await req.json();
 
-        const formData = await req.formData();
-        const name = formData.get("name");
-        const profile_pic = formData.get("profile_pic");
-        let profilePicPath = null;
-
-        if (profile_pic) {
-            const ext = profile_pic?.name.split(".").pop();
-            const fileName = `db-${name.toLowerCase().split(" ").join("-")}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.${ext}`
-            const { error: storageError } = await supabase.storage.from('profile_pic').upload(fileName, profile_pic)
-
-            if (storageError) throw new Error(storageError.message)
-
-            profilePicPath = fileName
-        }
+        //FIX: delete prev image
 
         await supabase.auth.updateUser({
             data: {
                 name,
-                ...(profilePicPath != null && { profile_pic: profilePicPath })
+                ...(path != null && { profile_pic: path })
             } // user_metadata
         });
 
